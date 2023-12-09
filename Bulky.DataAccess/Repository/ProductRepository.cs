@@ -18,7 +18,26 @@ namespace Bulky.DataAccess.Repository
         }
         public void Update(Product obj)
         {
-            _db.Products.Update(obj);
+            var objFromdb=_db.Products.FirstOrDefault(u=>u.Id==obj.Id);
+            if(objFromdb != null)
+            {
+                objFromdb.Title=obj.Title;
+                objFromdb.ISBN = obj.ISBN;
+                objFromdb.Price = obj.Price;
+                objFromdb.Price50 = obj.Price50;
+                objFromdb.ListPrice = obj.ListPrice;
+                objFromdb.Price100 = obj.Price100;
+                objFromdb.Description = obj.Description;
+                objFromdb.CategoryId = obj.CategoryId;
+                objFromdb.Author = obj.Author;
+                if(obj.ImageUrl!= null)
+                {
+                    objFromdb.ImageUrl=obj.ImageUrl;
+                }
+
+
+            }
+            
         }
     }
 }
