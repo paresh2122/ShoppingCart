@@ -283,7 +283,7 @@
     <partial name="_ValidationScriptsPartial" />
     <script>
         function validateInput() {
-            if (document.getElementById("trackingNumber").value = "") {
+            if (document.getElementById("trackingNumber").value == "") {
                 Swal.fire({
                     icon: 'error',
                     title: 'opps',
@@ -291,7 +291,7 @@
                 });
                 return false;
             }
-            if (document.getElementById("carrier").value = "") {
+            if (document.getElementById("carrier").value == "") {
                 Swal.fire({
                     icon: 'error',
                     title: 'opps',
