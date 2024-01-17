@@ -30,10 +30,11 @@ namespace Bulky.DataAccess.Repository
                 objFromdb.Description = obj.Description;
                 objFromdb.CategoryId = obj.CategoryId;
                 objFromdb.Author = obj.Author;
-                if(obj.ImageUrl!= null)
-                {
-                    objFromdb.ImageUrl=obj.ImageUrl;
-                }
+                objFromdb.ProductImages=obj.ProductImages;
+                // if(obj.ImageUrl!= null)
+                // {
+                //     objFromdb.ImageUrl=obj.ImageUrl;
+                // }
 
 
             }
