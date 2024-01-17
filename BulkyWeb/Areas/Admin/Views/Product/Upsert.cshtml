@@ -1,16 +1,16 @@
 ﻿@model ProductVM
 <div class="card shadow border-0 my-4">
     <div class="card-header bg-secondary bg-gradient ml-0 py-3">
-    <div class="row">
-        <div class="col-12 text-center">
-            <h2 class="text-white py-2">@(Model.Product.Id!=0?"Update":"Create") Product</h2>
+        <div class="row">
+            <div class="col-12 text-center">
+                <h2 class="text-white py-2">@(Model.Product.Id != 0 ? "Update" : "Create") Product</h2>
+            </div>
         </div>
-    </div>
     </div>
     <div class="card-body p-4">
         <form method="post" class="row" enctype="multipart/form-data">
-            <input asp-for="Product.Id" hidden/>
-            <input asp-for="Product.ImageUrl" hidden/>
+            <input asp-for="Product.Id" hidden />
+
             <div class="row">
                 <div class="col-10">
                     <div class="border p-3">
@@ -60,7 +60,8 @@
                             <span asp-validation-for="Product.Price100" class="text-danger"></span>
                         </div>
                         <div class="form-floating py-2 col-12">
-                            <select asp-for="Product.CategoryId" asp-items="@Model.CategoryList" class="form-select border-0 shadow">
+                            <select asp-for="Product.CategoryId" asp-items="@Model.CategoryList"
+                                class="form-select border-0 shadow">
                                 <option disabled selected>--Select Category--</option>
                             </select>
                             <label asp-for="Product.CategoryId" class="ms-2"></label>
@@ -68,8 +69,8 @@
                         </div>
 
                         <div class="form-floating py-2 col-12">
-                            <input type="file" name="file" class="form-control border-0 shadow" />
-                            <label asp-for="Product.ImageUrl" class="ms-2"></label>
+                            <input type="file" name="files" class="form-control border-0 shadow" multiple />
+                            <label asp-for="Product.ProductImages" class="ms-2"></label>
 
                         </div>
                         <div class="row pt-2 mb-3">
@@ -85,7 +86,8 @@
 
                             </div>
                             <div class="col-6 col-md-3">
-                                <a asp-controller="Product" asp-action="Index" class="btn btn-outline-primary border form-control">
+                                <a asp-controller="Product" asp-action="Index"
+                                    class="btn btn-outline-primary border form-control">
                                     Back To List
                                 </a>
                             </div>
@@ -96,17 +98,28 @@
 
                 </div>
                 <div class="col-2">
-                    <img src="@Model.Product.ImageUrl" width="100%"
-                    style="border-radius:5px;border:1px solid #bbb9b9"/>
+                    @if (Model.Product.ProductImages != null)
+                    {
+                        foreach (var image in Model.Product.ProductImages)
+                        {
+                            <div class="border p-1 m-2 text-center">
+                                <img src="@image.ImageUrl" width="100%" style="border-radius:5px;border:1px solid #bbb9b9" />
+                                <a asp-action="DeleteImage" class="btn btn-danger" asp-route-imageid="@image.Id">
+                                    <i class="bi bi-trash-fill"></i>Delete
+                                </a>
+                            </div>
+                        }
+                    }
+                    @* *@
                 </div>
-                
+
             </div>
-            
+
         </form>
     </div>
 </div>
 
-@section Scripts{
+@section Scripts {
     <script>
         tinymce.init({
             selector: 'textarea',
@@ -122,6 +135,6 @@
         });
     </script>
     @{
-        <partial name="_ValidationScriptsPartial"/>
+        <partial name="_ValidationScriptsPartial" />
     }
 }

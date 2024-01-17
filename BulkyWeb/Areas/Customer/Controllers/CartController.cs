@@ -33,8 +33,10 @@ namespace BulkyWeb.Areas.Customer.Controllers
                 includeProperties: "Product"),
                 OrderHeader=new()
             };
+            IEnumerable<ProductImage> productImages= _unitOfWork.ProductImage.GetAll();
             foreach (var cart in ShoppingCartVM.ShoppingCartList)
             {
+                cart.Product.ProductImages=productImages.Where(u=>u.ProductId==cart.Product.Id).ToList();
                  cart.Price=GetPriceBasedQuantity(cart);
                 ShoppingCartVM.OrderHeader.OrderTotal += (cart.Price * cart.Count);
             }
@@ -72,7 +74,7 @@ namespace BulkyWeb.Areas.Customer.Controllers
 			var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
             ShoppingCartVM.ShoppingCartList = _unitOfWork.ShoppingCart.GetAll(u => u.ApplicationUserId == userId,
                 includeProperties: "Product");
-            ShoppingCartVM.OrderHeader.OrderDate= DateTime.Now;
+            ShoppingCartVM.OrderHeader.OrderDate= DateTime.UtcNow;
             ShoppingCartVM.OrderHeader.ApplicationUserId = userId;
 			
 			
@@ -113,7 +115,7 @@ namespace BulkyWeb.Areas.Customer.Controllers
 			{
                 //regular customer account
                 //stripe logic
-                var domain = "https://localhost:44387/";
+                var domain = "http://localhost:5211/";
 
 				var options = new Stripe.Checkout.SessionCreateOptions
                 {
@@ -164,10 +166,13 @@ namespace BulkyWeb.Areas.Customer.Controllers
                     _unitOfWork.OrderHeader.UpdateStatus(id, SD.StatusApproved, SD.PaymentStatusApproved);
                     _unitOfWork.Save();
                 }
-                List<ShoppingCart> shoppingCarts=_unitOfWork.ShoppingCart.GetAll(u=>u.ApplicationUserId==orderHeader.ApplicationUserId).ToList();
+                HttpContext.Session.Clear();
+
+                
+            }
+            List<ShoppingCart> shoppingCarts=_unitOfWork.ShoppingCart.GetAll(u=>u.ApplicationUserId==orderHeader.ApplicationUserId).ToList();
                 _unitOfWork.ShoppingCart.RemoveRange(shoppingCarts);
                 _unitOfWork.Save();
-            }
             return View(id);
         }
 		public IActionResult Plus(int cartId)
@@ -180,10 +185,11 @@ namespace BulkyWeb.Areas.Customer.Controllers
         }
         public IActionResult Minus(int cartId)
         {
-            var cartFromDB = _unitOfWork.ShoppingCart.Get(u => u.Id == cartId);
+            var cartFromDB = _unitOfWork.ShoppingCart.Get(u => u.Id == cartId,tracked:true);
             if (cartFromDB.Count <= 1)
             {
                 //remove from cart
+                HttpContext.Session.SetInt32(SD.SessionCart,_unitOfWork.ShoppingCart.GetAll(u=>u.ApplicationUserId==cartFromDB.ApplicationUserId).Count()-1);
                 _unitOfWork.ShoppingCart.Remove(cartFromDB);
             }
             else
@@ -196,12 +202,13 @@ namespace BulkyWeb.Areas.Customer.Controllers
         }
         public IActionResult Remove(int cartId)
         {
-            var cartFromDB = _unitOfWork.ShoppingCart.Get(u => u.Id == cartId);
+            var cartFromDB = _unitOfWork.ShoppingCart.Get(u => u.Id == cartId,tracked:true);
             
                 //remove from cart
                 _unitOfWork.ShoppingCart.Remove(cartFromDB);
-
+            HttpContext.Session.SetInt32(SD.SessionCart,_unitOfWork.ShoppingCart.GetAll(u=>u.ApplicationUserId==cartFromDB.ApplicationUserId).Count()-1);
             _unitOfWork.Save();
+            
 
             return RedirectToAction(nameof(Index));
         }
