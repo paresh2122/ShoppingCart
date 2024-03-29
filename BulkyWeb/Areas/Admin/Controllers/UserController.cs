@@ -129,6 +129,25 @@ namespace BulkyWeb.Areas.Admin.Controllers
             return Json(new{success=true,message="Operation Successful"});
             
         }
+        [HttpPost]
+        public IActionResult EmailConfirm([FromBody]string id){
+            var objFromDb = _unitOfWork.ApplicationUser.Get(u => u.Id == id);
+            if (objFromDb == null)
+            {
+                return Json(new { success = false, message = "Error while doing Operation" });
+                
+                
+            }
+            if(objFromDb.EmailConfirmed==true) {
+                objFromDb.EmailConfirmed=false;
+            }
+            else{
+                objFromDb.EmailConfirmed=true;
+            }
+            _unitOfWork.ApplicationUser.Update(objFromDb);
+            _unitOfWork.Save();
+            return Json(new{success=true,message="Operation Successful"});
+        }
         #endregion
     }
 }
