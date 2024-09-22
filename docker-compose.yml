@@ -1,0 +1,23 @@
+version: '3.4'
+
+services:
+  bulkyweb:
+    image: ${DOCKER_REGISTRY-}bulkyweb
+    container_name: bulkyweb
+    build:
+      context: .
+      dockerfile: BulkyWeb/Dockerfile
+    ports:
+    - "5000:5000"
+    - "5001:5001"
+  DB:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: DB
+    environment:
+        - SA_PASSWORD=.Net_Developer1999  # Replace with a secure password
+        - ACCEPT_EULA=Y
+        - MSSQL_DB=Bulky1
+    volumes:
+        - ./container/Sql:/var/opt/mssql/data
+    
+

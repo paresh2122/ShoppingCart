@@ -7,10 +7,13 @@ using Bulky.Utility;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Stripe;
 using Bulky.DataAccess.DbInitializer;
+using System.Net;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+ServicePointManager.ServerCertificateValidationCallback =
+    (sender, certificate, chain, sslPolicyErrors) => true;
 builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<ApplicationDbContext>(option=>{
     option.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
@@ -29,7 +32,9 @@ builder.Services.AddAuthentication().AddFacebook(option=>{
 
 });
 
+
 builder.Services.AddDistributedMemoryCache();
+builder.Services.AddScoped<ICacheService, CacheService>();
 builder.Services.AddSession(options=>{
     options.IdleTimeout=TimeSpan.FromMinutes(100);
     options.Cookie.HttpOnly=true;

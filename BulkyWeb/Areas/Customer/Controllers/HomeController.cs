@@ -5,6 +5,8 @@ using Bulky.Models;
 using Bulky.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Caching.Memory;
 
 
 namespace BulkyWeb.Areas.Customer.Controllers;
@@ -14,22 +16,48 @@ public class HomeController : Controller
 {
     private readonly ILogger<HomeController> _logger;
     private readonly IUnitOfWork _unitofwork;
+    private readonly ICacheService _cacheService;
 
-    public HomeController(ILogger<HomeController> logger,IUnitOfWork unitofwork)
+
+    public HomeController(ILogger<HomeController> logger,IUnitOfWork unitofwork, ICacheService cacheService)
     {
         _logger = logger;
         _unitofwork = unitofwork;
+        _cacheService = cacheService;
+        
     }
 
-    public IActionResult Index()
+    public async Task< IActionResult> Index()
     {
         var claimsIdentity=(ClaimsIdentity)User.Identity;
         var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
         if(claim !=null){
             HttpContext.Session.SetInt32(SD.SessionCart,_unitofwork.ShoppingCart.GetAll(u=>u.ApplicationUserId == claim.Value).Count());
         }
-        IEnumerable<Product> productList=_unitofwork.Product.GetAll(includeProperties:"Category,ProductImages");
+        //IEnumerable<Product> productList = _unitofwork.Product.GetAll(includeProperties: "Category,ProductImages");
+        //return View(productList);
+        string cacheKey = "productListCache";
+        var productList = await _cacheService.GetAsync<IEnumerable<Product>>(cacheKey);
+
+        // If the cache is empty, fetch the data from the database
+        if (productList == null)
+        {
+            productList = _unitofwork.Product.GetAll(includeProperties: "Category,ProductImages");
+
+            // Set cache options (e.g., expire after 5 minutes)
+            var cacheOptions = new DistributedCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5)
+            };
+
+            // Cache the product list
+            await _cacheService.SetAsync(cacheKey, productList, cacheOptions);
+        }
         return View(productList);
+
+
+
+
     }
     public IActionResult Details(int productid)
     {
@@ -77,4 +105,6 @@ public class HomeController : Controller
     {
         return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
     }
+    
+    
 }
